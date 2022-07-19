@@ -150,7 +150,7 @@ class AgentSpiking:
         self.step_ita = 0
 
 
-    def remember(self, state, spike_state, action, reward, next_state, next_spike_state, done):
+    def remember(self, state, raw_action, reward, next_state, done):
         """
         Add New Memory Entry into memory deque
         :param state: current state
@@ -162,7 +162,7 @@ class AgentSpiking:
         :param done: if is done
         """
         
-        self.memory.append((state, spike_state, action, reward, next_state, next_spike_state, done))
+        self.memory.append((state, state, raw_action, reward, next_state, done))
 
     def act(self, state, explore=True, train=True):  # state: [list(1x4), [np.array(6x480x640), np.array(6x480x640)]
         """
@@ -177,8 +177,12 @@ class AgentSpiking:
         with torch.no_grad():
             # normal_state_spikes = self._state_2_state_spikes(normal_state, 1)        # from np: batch_size x state_num --> batch_window x batch_size x state_num
             dvs_state = self._resort_dvs_state(dvs_state)
-            dvs_state.append(normal_state)
-            action = self.actor_net(dvs_state, 1).to(self.device)   # action: tensor: batch_size x 2
+            dvs_pos_state = dvs_state[0]
+            dvs_neg_state = dvs_state[1]
+            dvs_pos_state_tensor = torch.Tensor(dvs_pos_state).to(self.device)
+            dvs_neg_state_tensor = torch.Tensor(dvs_neg_state).to(self.device)
+            combined_data_actor = [dvs_pos_state_tensor, dvs_neg_state_tensor, normal_state]
+            action = self.actor_net(combined_data_actor, 1).to(self.device)   # action: tensor: batch_size x 2
             action = action.cpu().numpy().squeeze()  # np: [1 x 2]
             raw_snn_action = copy.deepcopy(action)
         if train:
@@ -235,6 +239,8 @@ class AgentSpiking:
         '''
         Update Critic Network
         '''
+        combined_data_critic = [dvs_pos_state_batch_tensor, dvs_neg_state_batch_tensor, \
+                                normal_state_batch_tensor, action_batch_tensor]
         self.critic_optimizer.zero_grad()
         current_q = self.critic_net(combined_data_critic)
         critic_loss = self.criterion(current_q, target_q)

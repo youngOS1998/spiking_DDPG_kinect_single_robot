@@ -75,9 +75,11 @@ class GazeboEnvironment:
         self.linear_spd_range = 0.5
         self.angular_spd_range = 2.0
         # Subscriber
+        print('pp')
         rospy.Subscriber('/gazebo/model_states', ModelStates, self._robot_state_cb)
         rospy.Subscriber('/mybot/camera1/events', EventArray, self._robot_dvs_cb)
-        rospy.Subscriber('/spying_signal', Spying, self._robot_spying_cb)
+        rospy.Subscriber('/Spying_signal', Spying, self._robot_spying_cb)
+        print('hh')
         # Publisher
         self.pub_action = rospy.Publisher('/robot/cmd_vel', Twist, queue_size=5)
         # Service
@@ -87,11 +89,13 @@ class GazeboEnvironment:
         self.reset_simulation = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
         # Init Subscriber
         while not self.robot_state_init:
+            print('loop1')
             continue
         ## while not self.robot_scan_init:
         ##     continue
-        while not self.robot_depth_init:
-            continue
+        # while not self.robot_depth_init:
+        #     print('loop2')
+        #     continue
         rospy.loginfo("Finish Subscriber Init...")
 
     def step(self, action):
@@ -208,8 +212,8 @@ class GazeboEnvironment:
         :param goal_list: goal position list
         :param obstacle_list: obstacle list
         """
-        self.robot_init_pose_list = [[2,2],[3,3],[4,4],[5,5],[6,6]]
-        self.goal_pos_list = [[4,2],[5,3],[8,4],[9,5],[8,6]]
+        self.robot_init_pose_list = [[3,3,0],[4,4,0],[3.5,4,0],[6.3,5,0],[6,6,0]]
+        self.goal_pos_list = [[6,3],[7,4],[5.4,4],[9.4,5],[10,6]]
         self.obstacle_poly_list = obstacle_list
 
     def _euler_2_quat(self, yaw=0, pitch=0, roll=0):
@@ -325,13 +329,15 @@ class GazeboEnvironment:
         Callback function for spying the state of robot and target
         :param msg: spying signal
         """
-        self.goal_dis_dir_cur = [msg.goal_dis, msg.goal_dir]
+        self.goal_dis_dir_cur = [msg.distance, msg.direction]
+        # print(self.goal_dis_dir_cur)
 
     def _robot_state_cb(self, msg):
         """
         Callback function for robot state
         :param msg: message
         """
+        # print('------ robot_state_cb ------')
         if self.robot_state_init is False:
             self.robot_state_init = True
         quat = [msg.pose[-2].orientation.x,
@@ -344,6 +350,8 @@ class GazeboEnvironment:
         linear_spd = math.sqrt(msg.twist[-2].linear.x**2 + msg.twist[-2].linear.y**2)
         self.robot_pose = [msg.pose[-2].position.x, msg.pose[-2].position.y, yaw]      # 分别是 X, Y, rotation by Z
         self.robot_speed = [linear_spd, msg.twist[-2].angular.z]                       # [sqrt(linear.x**2, linear.y**2), angular.z]
+        # print('robot pose :', self.robot_pose)
+        # print('robot speed:', self.robot_speed)
 
     def _robot_dvs_cb(self, msg):
         """
@@ -408,3 +416,5 @@ class GazeboEnvironment:
         negative_events = np.concatenate([num1_neg_img, num2_neg_img, num3_neg_img, num4_neg_img, num5_neg_img, num6_neg_img], axis=0)
 
         self.events_cubic = [positive_events, negative_events]  # events_cubic: np.array(6 x 480 x 640)
+        # print(self.events_cubic)
+        # print('bb')
