@@ -28,9 +28,9 @@ class AgentSpiking:
         4. Save: Save model
     """
     def __init__(self,
-                 state_num=6,
+                 state_num=4,
                  action_num=2,
-                 spike_state_num=198,
+                 spike_state_num=9604,
                  actor_net_dim=(256, 256, 256),
                  critic_net_dim=(512, 512, 512),
                  batch_window=50,
@@ -104,24 +104,34 @@ class AgentSpiking:
         """
         Networks and Target Networks
         """
-        self.actor_net = ActorNetSpiking(self.spike_state_num, self.action_num, self.device,
+        self.actor_net = ActorNetSpiking(self.spike_state_num, 
+                                         self.action_num, 
+                                         self.device,
                                          hidden1=actor_net_dim[0],
                                          hidden2=actor_net_dim[1],
                                          hidden3=actor_net_dim[2],
                                          batch_window=self.batch_window)
-        self.critic_net = CriticNetSpiking(self.state_num, self.action_num,
-                                    hidden1=critic_net_dim[0],
-                                    hidden2=critic_net_dim[1],
-                                    hidden3=critic_net_dim[2])
-        self.target_actor_net = ActorNetSpiking(self.spike_state_num, self.action_num, self.device,
+
+        self.critic_net = CriticNetSpiking(self.state_num, 
+                                           self.action_num,
+                                           hidden1=critic_net_dim[0],
+                                           hidden2=critic_net_dim[1],
+                                           hidden3=critic_net_dim[2])
+
+        self.target_actor_net = ActorNetSpiking(self.spike_state_num, 
+                                                self.action_num, 
+                                                self.device,
                                                 hidden1=actor_net_dim[0],
                                                 hidden2=actor_net_dim[1],
                                                 hidden3=actor_net_dim[2],
                                                 batch_window=self.batch_window)
-        self.target_critic_net = CriticNetSpiking(self.state_num, self.action_num,
-                                           hidden1=critic_net_dim[0],
-                                           hidden2=critic_net_dim[1],
-                                           hidden3=critic_net_dim[2])
+
+        self.target_critic_net = CriticNetSpiking(self.state_num, 
+                                                  self.action_num,
+                                                  hidden1=critic_net_dim[0],
+                                                  hidden2=critic_net_dim[1],
+                                                  hidden3=critic_net_dim[2])
+
         self._hard_update(self.target_actor_net, self.actor_net)
         self._hard_update(self.target_critic_net, self.critic_net)
         self.actor_net.to(self.device)
@@ -154,7 +164,7 @@ class AgentSpiking:
         
         self.memory.append((state, spike_state, action, reward, next_state, next_spike_state, done))
 
-    def act(self, state, explore=True, train=True):  # state: [list(1x6), np.array(1x48x64)]
+    def act(self, state, explore=True, train=True):  # state: [list(1x4), [np.array(6x480x640), np.array(6x480x640)]
         """
         Generate Action based on state
         :param state: current state
@@ -163,9 +173,12 @@ class AgentSpiking:
         :return: action
         """
 
+        normal_state, dvs_state = state[0], state[1]
         with torch.no_grad():
-            state_spikes = self._state_2_state_spikes(state, 1)        # np: 1 x 198
-            action = self.actor_net(state_spikes, 1).to(self.device)   # action: tensor: batch_size x 2
+            # normal_state_spikes = self._state_2_state_spikes(normal_state, 1)        # from np: batch_size x state_num --> batch_window x batch_size x state_num
+            dvs_state = self._resort_dvs_state(dvs_state)
+            dvs_state.append(normal_state)
+            action = self.actor_net(dvs_state, 1).to(self.device)   # action: tensor: batch_size x 2
             action = action.cpu().numpy().squeeze()  # np: [1 x 2]
             raw_snn_action = copy.deepcopy(action)
         if train:
@@ -186,24 +199,44 @@ class AgentSpiking:
         Experience Replay Training
         :return: actor_loss_item, critic_loss_item
         """
-        action_batch, reward_batch, done_batch, state_spikes_batch, nstate_spikes_batch = self._random_minibatch()
+        normal_state_batch, dvs_pos_state_batch, dvs_neg_state_batch, normal_nstate_batch, \
+            dvs_pos_nstate_batch, dvs_neg_nstate_batch, action_batch, reward_batch, done_batch = self._random_minibatch()
         '''
+        :param: normal_state_batch  : np: batch_size x 4
+        :param: dvs_pos_state_batch : np: batch_size x 6 x 480 x 640
+        :param: dvs_neg_state_batch : np: batch_size x 6 x 480 x 640
+        :param: normal_nstate_batch : np: batch_szie x 4
+        :param: dvs_pos_nstate_batch: np: batch_size x 6 x 480 x 640
+        :param: dvs_neg_nstate_batch: np: batch_size x 6 x 480 x 640
+        :param: action_batch        : np: batch_size x 2
+        :param: reward_batch        : np: batch_size x 1
+        :param: done_batch          : np: batch_size x 1
         Compuate Target Q Value
         '''
-        state_spikes_batch1 = self._state_2_state_spikes(state_spikes_batch, self.batch_size)
-        state_spikes_batch2 = torch.Tensor(state_spikes_batch).to(self.device)
-        nstate_spikes_batch1 = self._state_2_state_spikes(nstate_spikes_batch, self.batch_size)
-        nstate_spikes_batch2 = torch.Tensor(nstate_spikes_batch).to(self.device)
+        dvs_pos_state_batch_tensor = torch.Tensor(dvs_pos_state_batch).to(self.device)
+        dvs_neg_state_batch_tensor = torch.Tensor(dvs_neg_state_batch).to(self.device)
+        dvs_pos_nstate_batch_tensor = torch.Tensor(dvs_pos_nstate_batch).to(self.device)
+        dvs_neg_nstate_batch_tensor = torch.Tensor(dvs_neg_nstate_batch).to(self.device)
+        normal_state_batch_tensor = torch.Tensor(normal_state_batch).to(self.device)
+        normal_nstate_batch_tensor = torch.Tensor(normal_nstate_batch).to(self.device)
+        action_batch_tensor = torch.Tensor(action_batch).to(self.device)
         
+        combined_data_actor = [dvs_pos_state_batch_tensor, dvs_neg_state_batch_tensor, normal_state_batch]
+        
+        combined_ndata_actor = [dvs_pos_nstate_batch_tensor, dvs_neg_nstate_batch_tensor, normal_nstate_batch]
+        
+
         with torch.no_grad():
-            naction_batch = self.target_actor_net(nstate_spikes_batch1, self.batch_size)
-            next_q = self.target_critic_net([nstate_spikes_batch2, naction_batch])
+            naction_batch = self.target_actor_net(combined_ndata_actor, self.batch_size)
+            combined_ndata_critic = [dvs_pos_nstate_batch_tensor, dvs_neg_nstate_batch_tensor, \
+                                     normal_nstate_batch_tensor, naction_batch]
+            next_q = self.target_critic_net(combined_ndata_critic)
             target_q = reward_batch + self.reward_gamma * next_q * (1. - done_batch)
         '''
         Update Critic Network
         '''
         self.critic_optimizer.zero_grad()
-        current_q = self.critic_net([state_spikes_batch2, action_batch])
+        current_q = self.critic_net(combined_data_critic)
         critic_loss = self.criterion(current_q, target_q)
         critic_loss_item = critic_loss.item()
         critic_loss.backward()
@@ -212,8 +245,10 @@ class AgentSpiking:
         Update Actor Network
         '''
         self.actor_optimizer.zero_grad()
-        current_action = self.actor_net(state_spikes_batch1, self.batch_size)
-        actor_loss = -self.critic_net([state_spikes_batch2, current_action])
+        current_action = self.actor_net(combined_data_actor, self.batch_size)
+        combined_data_critic = [dvs_pos_state_batch_tensor, dvs_neg_state_batch_tensor, \
+                                normal_state_batch_tensor, current_action]
+        actor_loss = -self.critic_net(combined_data_critic)
         actor_loss = actor_loss.mean()
         actor_loss_item = actor_loss.item()
         actor_loss.backward()
@@ -294,18 +329,32 @@ class AgentSpiking:
         self.actor_net.to(self.device)
         return max_w, min_w, max_bias, min_bias, shape_w, shape_bias
 
-    def _state_2_state_spikes(self, spike_state_value, batch_size):   # 
+    def _resort_dvs_state(self, dvs_state):
+        """
+        Transform dvs_state to resorted spikes
+        :param dvs_state: [np(6x480x640), np(6x480x640)]
+        :return:  [np(step_window x batch_size x channels x height x width), np(step_window x batch_size x channels x height x width)]
+        """
+        dvs_pos = dvs_state[0]
+        dvs_neg = dvs_state[1]  # np: 6 x 480 x 640 : step_window x height x width
+        dvs_pos_sorted = dvs_pos[:,np.newaxis,np.newaxis,:,:]
+        dvs_neg_sorted = dvs_neg[:,np.newaxis,np.newaxis,:,:]
+        return [dvs_pos_sorted, dvs_neg_sorted]
+
+    def _state_2_state_spikes(self, spike_state_value, batch_size):  # from np: batch_size x state_num --> batch_window x batch_size x state_num
         """
         Transform state to spikes of input neurons
         :param spike_state_value: state from environment transfer to firing rates of neurons
         :param batch_size: batch size
         :return: state_spikes
         """
-        spike_state_value = spike_state_value.reshape((-1, self.spike_state_num, 1)) # np: [1x198x1]
-        state_spikes = np.random.rand(batch_size, self.spike_state_num, self.batch_window) < spike_state_value
+        # spike_state_value = spike_state_value.reshape((-1, self.spike_state_num, 1)) # np: [1x198x1]
+        spike_state_value = spike_state_value.reshape((1, -1, self.spike_state_num)) # np: [1 x batch_size x 198]
+        # state_spikes = np.random.rand(batch_size, self.spike_state_num, self.batch_window) < spike_state_value
+        state_spikes = np.random.rand(self.batch_window, batch_size, self.spike_state_num) < spike_state_value
         state_spikes = state_spikes.astype(float)
         state_spikes = torch.Tensor(state_spikes).to(self.device)
-        return state_spikes
+        return state_spikes  # batch_window x batch_size x spike_state_num
 
     def _random_minibatch(self):
         """
@@ -313,23 +362,32 @@ class AgentSpiking:
         :return action_batch, reward_batch, done_batch, state_spikes_batch, nstate_spikes_batch
         """
         minibatch = random.sample(self.memory, self.batch_size)
-        spike_state_value_batch = np.zeros((self.batch_size, self.spike_state_num))
+        normal_state_batch = np.zeros((self.batch_size, 4))
+        dvs_pos_state_batch = np.zeros((self.batch_size, 6, 480, 640))
+        dvs_neg_state_batch = np.zeros((self.batch_size, 6, 480, 640))
         action_batch = np.zeros((self.batch_size, self.action_num))
         reward_batch = np.zeros((self.batch_size, 1))
-        spike_nstate_value_batch = np.zeros((self.batch_size, self.spike_state_num))
+        normal_nstate_batch = np.zeros((self.batch_size, 4))
+        dvs_pos_nstate_batch = np.zeros((self.batch_size, 6, 480, 640))
+        dvs_neg_nstate_batch = np.zeros((self.batch_size, 6, 480, 640))
         done_batch = np.zeros((self.batch_size, 1))
         for num in range(self.batch_size):
-            spike_state_value_batch[num, :] = np.array(minibatch[num][1])
-            action_batch[num, :] = np.array(minibatch[num][2])
-            reward_batch[num, 0] = minibatch[num][3]
-            spike_nstate_value_batch[num, :] = np.array(minibatch[num][5])
-            done_batch[num, 0] = minibatch[num][6]
-        state_spikes_batch = spike_state_value_batch
-        nstate_spikes_batch = spike_nstate_value_batch
-        action_batch = torch.Tensor(action_batch).to(self.device)
-        reward_batch = torch.Tensor(reward_batch).to(self.device)
-        done_batch = torch.Tensor(done_batch).to(self.device)
-        return action_batch, reward_batch, done_batch, state_spikes_batch, nstate_spikes_batch
+            normal_state_batch[num, :] = minibatch[num][0][0]
+            dvs_pos_state_batch[num, :] = minibatch[num][0][1][0]
+            dvs_neg_state_batch[num, :] = minibatch[num][0][1][1]
+            action_batch[num, :] = np.array(minibatch[num][1])
+            reward_batch[num, 0] = minibatch[num][2]
+            normal_nstate_batch[num, :] = minibatch[num][3][0]
+            dvs_pos_nstate_batch[num, :] = minibatch[num][3][1][0]
+            dvs_neg_nstate_batch[num, :] = minibatch[num][3][1][1]
+            done_batch[num, 0] = minibatch[num][4]
+        # state_spikes_batch = spike_state_value_batch
+        # nstate_spikes_batch = spike_nstate_value_batch
+        # action_batch = torch.Tensor(action_batch).to(self.device)
+        # reward_batch = torch.Tensor(reward_batch).to(self.device)
+        # done_batch = torch.Tensor(done_batch).to(self.device)
+        return normal_state_batch, dvs_pos_state_batch, dvs_neg_state_batch, normal_nstate_batch, \
+               dvs_pos_nstate_batch, dvs_neg_nstate_batch, action_batch, reward_batch, done_batch
 
     def _hard_update(self, target, source):
         """

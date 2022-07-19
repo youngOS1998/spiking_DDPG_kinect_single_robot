@@ -3,5 +3,7 @@
   (:export
    "<SIMPLESCAN>"
    "SIMPLESCAN"
+   "<SPYING>"
+   "SPYING"
   ))
 

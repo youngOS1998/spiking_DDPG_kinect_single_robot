@@ -1,7 +1,8 @@
 file(REMOVE_RECURSE
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/share/roseus/ros/simple_laserscan/manifest.l"
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/share/roseus/ros/simple_laserscan/msg/SimpleScan.l"
   "CMakeFiles/simple_laserscan_generate_messages_eus"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/share/roseus/ros/simple_laserscan/msg/SimpleScan.l"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/share/roseus/ros/simple_laserscan/msg/Spying.l"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/share/roseus/ros/simple_laserscan/manifest.l"
 )
 
 # Per-language clean rules from dependency scanning.

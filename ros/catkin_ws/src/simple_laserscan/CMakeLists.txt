@@ -53,6 +53,7 @@ add_definitions(-std=c++11)
 add_message_files(
   FILES
   SimpleScan.msg
+  Spying.msg
 #   Message1.msg
 #   Message2.msg
 )

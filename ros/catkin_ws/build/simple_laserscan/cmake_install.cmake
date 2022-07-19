@@ -1,8 +1,8 @@
-# Install script for directory: /home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/simple_laserscan
+# Install script for directory: /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/simple_laserscan
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,59 +37,57 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/usr/bin/objdump")
-endif()
-
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/msg" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/simple_laserscan/msg/SimpleScan.msg")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/cmake" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscan-msg-paths.cmake")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/include/simple_laserscan")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/share/roseus/ros/simple_laserscan")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/share/common-lisp/ros/simple_laserscan")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/share/gennodejs/ros/simple_laserscan")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  execute_process(COMMAND "/usr/bin/python2" -m compileall "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python2.7/dist-packages" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscan.pc")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/cmake" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscan-msg-extras.cmake")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/cmake" TYPE FILE FILES
-    "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscanConfig.cmake"
-    "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscanConfig-version.cmake"
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/msg" TYPE FILE FILES
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/simple_laserscan/msg/SimpleScan.msg"
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/simple_laserscan/msg/Spying.msg"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/simple_laserscan/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/cmake" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscan-msg-paths.cmake")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/include/simple_laserscan")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/share/roseus/ros/simple_laserscan")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/share/common-lisp/ros/simple_laserscan")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/share/gennodejs/ros/simple_laserscan")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  execute_process(COMMAND "/usr/bin/python2" -m compileall "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python2.7/dist-packages" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscan.pc")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/cmake" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscan-msg-extras.cmake")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan/cmake" TYPE FILE FILES
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscanConfig.cmake"
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/simple_laserscan/catkin_generated/installspace/simple_laserscanConfig-version.cmake"
+    )
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/simple_laserscan" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/simple_laserscan/package.xml")
 endif()
 

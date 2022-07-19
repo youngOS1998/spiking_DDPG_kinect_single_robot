@@ -1,8 +1,8 @@
-# Install script for directory: /home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/kobuki_description
+# Install script for directory: /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/kobuki_description
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,39 +37,34 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/usr/bin/objdump")
-endif()
-
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/kobuki_description/catkin_generated/installspace/kobuki_description.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/kobuki_description/catkin_generated/installspace/kobuki_description.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description/cmake" TYPE FILE FILES
-    "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/kobuki_description/catkin_generated/installspace/kobuki_descriptionConfig.cmake"
-    "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/kobuki_description/catkin_generated/installspace/kobuki_descriptionConfig-version.cmake"
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/kobuki_description/catkin_generated/installspace/kobuki_descriptionConfig.cmake"
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/kobuki_description/catkin_generated/installspace/kobuki_descriptionConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/kobuki_description/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/kobuki_description/package.xml")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/kobuki_description/launch")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/kobuki_description/launch")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/kobuki_description/meshes")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/kobuki_description/meshes")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/kobuki_description/rviz")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/kobuki_description/rviz")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/kobuki_description/urdf")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/kobuki_description" TYPE DIRECTORY FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/kobuki_description/urdf")
 endif()
 

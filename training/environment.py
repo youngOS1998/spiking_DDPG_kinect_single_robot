@@ -4,13 +4,14 @@ import copy
 import random
 import numpy as np
 from shapely.geometry import Point
-from simple_laserscan.msg import SimpleScan
+from simple_laserscan.msg import SimpleScan, Spying
 from gazebo_msgs.msg import ModelStates, ModelState
 from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty
 from gazebo_msgs.srv import SetModelState
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from dvs_msgs.msg import EventArray, Event
 
 
 class GazeboEnvironment:
@@ -24,11 +25,7 @@ class GazeboEnvironment:
         2. Step: Execute new action and return state
      """
     def __init__(self,
-                 depth_scale = 1.0,
-                 depth_min_dis = 0.05,
-                 depth_img_dim = (48, 64),
-                 goal_dis_min_dis=0.5,
-                 goal_dis_scale=1.0,
+                 dvs_dim=(6, 480, 640),
                  obs_near_th=0.35,
                  goal_near_th=0.5,
                  goal_reward=10,
@@ -52,19 +49,14 @@ class GazeboEnvironment:
         :param step_time: time for a single step (DEFAULT: 0.1 seconds)
         """
         self.goal_pos_list = None
+        self.goal_dis_amp = 5
+        self.goal_dir_amp = 5
         self.obstacle_poly_list = None
         self.robot_init_pose_list = None
-        self.depth_scale = depth_scale
-        self.depth_min_dis = depth_min_dis
-        self.depth_img_dim = depth_img_dim
-        self.goal_dis_min_dis = goal_dis_min_dis
-        self.goal_dis_scale = goal_dis_scale
         self.obs_near_th = obs_near_th
         self.goal_near_th = goal_near_th
         self.goal_reward = goal_reward
         self.obs_reward = obs_reward
-        self.goal_dis_amp = goal_dis_amp
-        self.goal_dir_amp = goal_dir_amp
         self.step_time = step_time
         # cv_bridge class
         self.cv_bridge = CvBridge()
@@ -72,20 +64,22 @@ class GazeboEnvironment:
         self.robot_pose = [0., 0., 0.]
         self.robot_speed = [0., 0.]
         ##self.robot_scan = np.zeros(self.scan_dir_num)
-        self.robot_depth_img = np.zeros(self.depth_img_dim)
+        self.events_cubic = np.zeros(dvs_dim)
         self.robot_state_init = False
-        ##self.robot_scan_init = False
         self.robot_depth_init = False
         # Goal Position
         self.goal_position = [0., 0.]
-        self.goal_dis_dir_pre = [0., 0.]  # Last step goal distance and direction
-        self.goal_dis_dir_cur = [0., 0.]  # Current step goal distance and direction
+        self.goal_dis_dir_pre = [0., 0.]
+        self.goal_dis_dir_cur = [0., 0.]
+        # speed range
+        self.linear_spd_range = 0.5
+        self.angular_spd_range = 2.0
         # Subscriber
-        rospy.Subscriber('gazebo/model_states', ModelStates, self._robot_state_cb)
-        ##rospy.Subscriber('/mrobot/simplescan', SimpleScan, self._robot_scan_cb)
-        rospy.Subscriber('/kinect/depth/image_raw', Image, self._robot_depth_cb)
+        rospy.Subscriber('/gazebo/model_states', ModelStates, self._robot_state_cb)
+        rospy.Subscriber('/mybot/camera1/events', EventArray, self._robot_dvs_cb)
+        rospy.Subscriber('/spying_signal', Spying, self._robot_spying_cb)
         # Publisher
-        self.pub_action = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
+        self.pub_action = rospy.Publisher('/robot/cmd_vel', Twist, queue_size=5)
         # Service
         self.pause_gazebo = rospy.ServiceProxy('gazebo/pause_physics', Empty)
         self.unpause_gazebo = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
@@ -135,9 +129,7 @@ class GazeboEnvironment:
         2. Compute Reward of the action
         3. Compute if the episode is ended
         '''
-        goal_dis, goal_dir = self._compute_dis_dir_2_goal(next_rob_state[0])
-        self.goal_dis_dir_cur = [goal_dis, goal_dir]
-        state = self._robot_state_2_ddpg_state(next_rob_state)
+        state = self._robot_state_2_ddpg_state(next_rob_state)  # [np.array(1x4), list(np.array(6x480x640), np.array(6x480x640))]
         reward, done = self._compute_reward(next_rob_state)
         self.goal_dis_dir_pre = [self.goal_dis_dir_cur[0], self.goal_dis_dir_cur[1]]
         return state, reward, done
@@ -165,7 +157,7 @@ class GazeboEnvironment:
         '''
         self.goal_position = self.goal_pos_list[ita]
         target_msg = ModelState()
-        target_msg.model_name = 'target'
+        target_msg.model_name = 'target_robot'
         target_msg.pose.position.x = self.goal_position[0]
         target_msg.pose.position.y = self.goal_position[1]
         rospy.wait_for_service('gazebo/set_model_state')
@@ -181,7 +173,7 @@ class GazeboEnvironment:
         robot_init_quat = self._euler_2_quat(yaw=robot_init_pose[2])
         robot_msg = ModelState()
         # robot_msg.model_name = 'mobile_base'
-        robot_msg.model_name = 'mrobot'
+        robot_msg.model_name = 'robot'
         robot_msg.pose.position.x = robot_init_pose[0]
         robot_msg.pose.position.y = robot_init_pose[1]
         robot_msg.pose.orientation.x = robot_init_quat[1]
@@ -206,11 +198,8 @@ class GazeboEnvironment:
             self.pause_gazebo()
         except rospy.ServiceException as e:
             print("Pause Service Failed: %s" % e)
-        goal_dis, goal_dir = self._compute_dis_dir_2_goal(rob_state[0])  # rob_state[0]: [x, y, rotation by z]
-        self.goal_dis_dir_pre = [goal_dis, goal_dir]
-        self.goal_dis_dir_cur = [goal_dis, goal_dir]
         state = self._robot_state_2_ddpg_state(rob_state)
-        return state  # [list(1x4), np.array(1x48x64)] 
+        return state  # [list(1x4), np.array(6x480x640)] 
 
     def set_new_environment(self, init_pose_list, goal_list, obstacle_list):
         """
@@ -219,8 +208,8 @@ class GazeboEnvironment:
         :param goal_list: goal position list
         :param obstacle_list: obstacle list
         """
-        self.robot_init_pose_list = init_pose_list
-        self.goal_pos_list = goal_list
+        self.robot_init_pose_list = [[2,2],[3,3],[4,4],[5,5],[6,6]]
+        self.goal_pos_list = [[4,2],[5,3],[8,4],[9,5],[8,6]]
         self.obstacle_poly_list = obstacle_list
 
     def _euler_2_quat(self, yaw=0, pitch=0, roll=0):
@@ -243,33 +232,6 @@ class GazeboEnvironment:
         z = sy * cp * cr - cy * sp * sr
         return [w, x, y, z]
 
-    def _compute_dis_dir_2_goal(self, pose):
-        """
-        Compute the difference of distance and direction to goal position
-        :param pose: pose of the robot
-        :return: distance, direction
-        """
-        delta_x = self.goal_position[0] - pose[0]
-        delta_y = self.goal_position[1] - pose[1]
-        distance = math.sqrt(delta_x**2 + delta_y**2)
-        ego_direction = math.atan2(delta_y, delta_x)
-        robot_direction = pose[2]   # yaw
-        while robot_direction < 0:
-            robot_direction += 2 * math.pi
-        while robot_direction > 2 * math.pi:
-            robot_direction -= 2 * math.pi
-        while ego_direction < 0:
-            ego_direction += 2 * math.pi
-        while ego_direction > 2 * math.pi:
-            ego_direction -= 2 * math.pi
-        pos_dir = abs(ego_direction - robot_direction)
-        neg_dir = 2 * math.pi - abs(ego_direction - robot_direction)
-        if pos_dir <= neg_dir:
-            direction = math.copysign(pos_dir, ego_direction - robot_direction)
-        else:
-            direction = math.copysign(neg_dir, -(ego_direction - robot_direction))
-        return distance, direction  # direction 是有正有负的，根据右手定则规定正负
-
     def _get_next_robot_state(self):
         """
         Get the combination of state after execute the action for a certain time
@@ -279,8 +241,8 @@ class GazeboEnvironment:
         """
         tmp_robot_pose = copy.deepcopy(self.robot_pose)
         tmp_robot_spd = copy.deepcopy(self.robot_speed)
-        tmp_robot_depth = copy.deepcopy(self.robot_depth_img)
-        state = [tmp_robot_pose, tmp_robot_spd, tmp_robot_depth]
+        tmp_robot_dvs = copy.deepcopy(self.events_cubic)
+        state = [tmp_robot_pose, tmp_robot_spd, tmp_robot_dvs]
         """
         tmp_robot_pose : [x, y, yaw]
         tmp_robot_spd  : [sqrt(linear.x**2 + linear.y**2), angular.z]
@@ -291,29 +253,34 @@ class GazeboEnvironment:
     def _robot_state_2_ddpg_state(self, state):
         """
         Transform robot state to DDPG state
-        ## Robot State: [robot_pose, robot_spd, scan]
-        Robot State: [robot_pose, robot_spd, robot_depth]
+        Robot State: [robot_pose, robot_spd, robot_dvs]
         DDPG state: [Distance to goal, Direction to goal, Linear Spd, Angular Spd, depth_img]
         :param state: robot state
         :return: ddpg_state
         """
-        tmp_goal_dis = self.goal_dis_dir_cur[0]  # goal_dis
-        if tmp_goal_dis == 0:
-            tmp_goal_dis = self.goal_dis_scale   # 1
+        tmp_state = [0 for _ in range(4)]
+        if state[1][0] > 0:
+            tmp_state[0] = state[1][0] / self.linear_spd_range
         else:
-            tmp_goal_dis = self.goal_dis_min_dis / tmp_goal_dis  # 0.5 / tmp_goal_dis 
-            if tmp_goal_dis > 1:
-                tmp_goal_dis = 1
-            tmp_goal_dis = tmp_goal_dis * self.goal_dis_scale    # tmp_goal_dis * 1
-        ddpg_state = [[self.goal_dis_dir_cur[1], tmp_goal_dis, state[1][0], state[1][1]]]   # [Direction to goal, Distance to goal, sqrt(x**2 + y**2), msg.twist[-1].angular.z]
+            tmp_state[1] = abs(state[1][0]) / self.linear_spd_range
+        if state[1][1] > 0:
+            tmp_state[2] = state[1][1] / self.angular_spd_range
+        else:
+            tmp_state[3] = abs(state[1][1]) / self.angular_spd_range
+
+        tmp_state = np.array(tmp_state)
+        tmp_state = tmp_state[np.newaxis, :]
+        ddpg_state = [tmp_state]   # [sqrt(x**2 + y**2), msg.twist[-1].angular.z]
         '''
         Transform distance in laser scan to [0, scale]
         '''
-        rescale_depth_img = self.depth_scale * (self.depth_min_dis / state[2])
-        rescale_depth_img = np.clip(rescale_depth_img, 0, self.depth_scale)
-        ddpg_state.append(rescale_depth_img)
-        return ddpg_state   # [list(1x4), np.array(1x48x64)]
-
+        positive_dvs = state[2][0]
+        negative_dvs = state[2][1]
+        rescale_dvs_pos = np.clip(positive_dvs, 0, 1)   # np.array(6x480x640)
+        rescale_dvs_neg = np.clip(negative_dvs, 0, 1)
+        rescale_dvs = [rescale_dvs_pos, rescale_dvs_neg]
+        ddpg_state.append(rescale_dvs)
+        return ddpg_state   # [np.array(1x4), list(np.array(6x480x640), np.array(6x480x640))]
 
     def _compute_reward(self, state):   # state: robot state
         """
@@ -353,6 +320,13 @@ class GazeboEnvironment:
             reward = reward + self.goal_dir_amp * (abs(self.goal_dis_dir_pre[1]) - abs(self.goal_dis_dir_cur[1]))
         return reward, done
 
+    def _robot_spying_cb(self, msg):
+        """
+        Callback function for spying the state of robot and target
+        :param msg: spying signal
+        """
+        self.goal_dis_dir_cur = [msg.goal_dis, msg.goal_dir]
+
     def _robot_state_cb(self, msg):
         """
         Callback function for robot state
@@ -360,41 +334,77 @@ class GazeboEnvironment:
         """
         if self.robot_state_init is False:
             self.robot_state_init = True
-        quat = [msg.pose[-1].orientation.x,
-                msg.pose[-1].orientation.y,
-                msg.pose[-1].orientation.z,
-                msg.pose[-1].orientation.w]
+        quat = [msg.pose[-2].orientation.x,
+                msg.pose[-2].orientation.y,
+                msg.pose[-2].orientation.z,
+                msg.pose[-2].orientation.w]
         siny_cosp = 2. * (quat[0] * quat[1] + quat[2] * quat[3])
         cosy_cosp = 1. - 2. * (quat[1] ** 2 + quat[2] ** 2)
         yaw = math.atan2(siny_cosp, cosy_cosp)
-        linear_spd = math.sqrt(msg.twist[-1].linear.x**2 + msg.twist[-1].linear.y**2)
-        self.robot_pose = [msg.pose[-1].position.x, msg.pose[-1].position.y, yaw]      # 分别是 X, Y, rotation by Z
-        self.robot_speed = [linear_spd, msg.twist[-1].angular.z]                       # [sqrt(linear.x**2, linear.y**2), angular.z]
+        linear_spd = math.sqrt(msg.twist[-2].linear.x**2 + msg.twist[-2].linear.y**2)
+        self.robot_pose = [msg.pose[-2].position.x, msg.pose[-2].position.y, yaw]      # 分别是 X, Y, rotation by Z
+        self.robot_speed = [linear_spd, msg.twist[-2].angular.z]                       # [sqrt(linear.x**2, linear.y**2), angular.z]
 
-    def _robot_scan_cb(self, msg):
+    def _robot_dvs_cb(self, msg):
         """
-        Callback function for robot scan
-        :param msg: message
+        Callback function for robot dvs events
+        :param msg: event msg
         """
-        if self.robot_scan_init is False:
-            self.robot_scan_init = True
-        self.robot_scan = np.array(msg.data)   # np.array(data * 36)
+        event_size = len(msg.events)   # the size of events
+        width, height = msg.width, msg.height
+        num1_pos_img = np.zeros((1, height, width))
+        num1_neg_img = np.zeros((1, height, width))
+        num2_pos_img = np.zeros((1, height, width))
+        num2_neg_img = np.zeros((1, height, width))
+        num3_pos_img = np.zeros((1, height, width))
+        num3_neg_img = np.zeros((1, height, width))
+        num4_pos_img = np.zeros((1, height, width))
+        num4_neg_img = np.zeros((1, height, width))
+        num5_pos_img = np.zeros((1, height, width))
+        num5_neg_img = np.zeros((1, height, width))
+        num6_pos_img = np.zeros((1, height, width))
+        num6_neg_img = np.zeros((1, height, width))
+        # events_cubic = np.zeros((6, height, width))
+        position1 = int(event_size / 6)
+        position2 = int(2*position1)
+        position3 = int(3*position1)
+        position4 = int(4*position1)
+        position5 = int(5*position1)
 
-    def _robot_depth_cb(self, msg):
-        """
-        Callback function for robot depth image
-        :param msg: depth msg
-        """
-        if self.robot_depth_init is False:
-            self.robot_depth_init = True
-        tmp_depth_img = self.cv_bridge.imgmsg_to_cv2(msg, "16UC1")     # from msg to cv_img (480 x 640)
-        np.save("./tmp_data.npy", tmp_depth_img)
-        #print("real data: ", tmp_depth_img)
-        tmp_data = np.zeros((self.depth_img_dim))
-        for i in range(0, 480, 10):
-            for j in range(0, 640, 10):
-                if tmp_depth_img[i][j] == 0:
-                    tmp_data[int(i/10)][int(j/10)] = 25
+        for i in range(event_size):
+            x, y = msg.events[i].x, msg.events[i].y
+            if i < position1:
+                if msg.events[i].polarity:
+                    num1_pos_img[0][y][x] = num1_pos_img[0][y][x] + 1
                 else:
-                    tmp_data[int(i/10)][int(j/10)] = tmp_depth_img[i][j]
-        self.robot_depth_img = tmp_data[np.newaxis, :]   # change into (1 x 480 x 640)
+                    num1_neg_img[0][y][x] = num1_neg_img[0][y][x] + 1
+            elif i > position1 and i < position2:
+                if msg.events[i].polarity:
+                    num2_pos_img[0][y][x] = num2_pos_img[0][y][x] + 1
+                else:
+                    num2_neg_img[0][y][x] = num2_neg_img[0][y][x] + 1
+            elif i > position2 and i < position3:
+                if msg.events[i].polarity:
+                    num3_pos_img[0][y][x] = num3_pos_img[0][y][x] + 1
+                else:
+                    num3_neg_img[0][y][x] = num3_neg_img[0][y][x] + 1                       
+            elif i > position3 and i < position4:
+                if msg.events[i].polarity:
+                    num4_pos_img[0][y][x] = num4_pos_img[0][y][x] + 1
+                else:
+                    num4_neg_img[0][y][x] = num4_pos_img[0][y][x] + 1
+            elif i > position4 and i < position5:
+                if msg.events[i].polarity:
+                    num5_pos_img[0][y][x] = num5_pos_img[0][y][x] + 1
+                else:
+                    num5_neg_img[0][y][x] = num5_pos_img[0][y][x] + 1
+            else:
+                if msg.events[i].polarity:
+                    num6_pos_img[0][y][x] = num6_pos_img[0][y][x] + 1
+                else:
+                    num6_neg_img[0][y][x] = num6_pos_img[0][y][x] + 1             
+
+        positive_events = np.concatenate([num1_pos_img, num2_pos_img, num3_pos_img, num4_pos_img, num5_pos_img, num6_pos_img], axis=0)
+        negative_events = np.concatenate([num1_neg_img, num2_neg_img, num3_neg_img, num4_neg_img, num5_neg_img, num6_neg_img], axis=0)
+
+        self.events_cubic = [positive_events, negative_events]  # events_cubic: np.array(6 x 480 x 640)

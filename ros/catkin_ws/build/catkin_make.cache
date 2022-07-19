@@ -1,2 +1,2 @@
-kobuki_description:ros_astra_camera:simple_laserscan:turtlebot_description:turtlebot_lidar
--DCATKIN_DEVEL_PREFIX=/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/install -G Unix Makefiles
+kobuki_description:simple_laserscan:turtlebot_description:turtlebot_lidar
+-DCATKIN_DEVEL_PREFIX=/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install -G Unix Makefiles

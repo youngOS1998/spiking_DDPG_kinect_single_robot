@@ -1,4 +1,4 @@
-prefix=/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel
+prefix=/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel
 
 Name: turtlebot_description
 Description: Description of turtlebot_description

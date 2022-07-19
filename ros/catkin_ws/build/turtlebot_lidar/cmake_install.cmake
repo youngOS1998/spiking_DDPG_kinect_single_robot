@@ -1,8 +1,8 @@
-# Install script for directory: /home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/turtlebot_lidar
+# Install script for directory: /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/turtlebot_lidar
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,23 +37,18 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/usr/bin/objdump")
-endif()
-
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/turtlebot_lidar/catkin_generated/installspace/turtlebot_lidar.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/turtlebot_lidar/catkin_generated/installspace/turtlebot_lidar.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/turtlebot_lidar/cmake" TYPE FILE FILES
-    "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/turtlebot_lidar/catkin_generated/installspace/turtlebot_lidarConfig.cmake"
-    "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/build/turtlebot_lidar/catkin_generated/installspace/turtlebot_lidarConfig-version.cmake"
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/turtlebot_lidar/catkin_generated/installspace/turtlebot_lidarConfig.cmake"
+    "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/build/turtlebot_lidar/catkin_generated/installspace/turtlebot_lidarConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/turtlebot_lidar" TYPE FILE FILES "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/src/turtlebot_lidar/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/turtlebot_lidar" TYPE FILE FILES "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/turtlebot_lidar/package.xml")
 endif()
 

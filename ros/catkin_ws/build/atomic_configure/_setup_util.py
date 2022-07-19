@@ -268,7 +268,7 @@ if __name__ == '__main__':
 
         if not args.local:
             # environment at generation time
-            CMAKE_PREFIX_PATH = r'/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel;/home/yangbo/cognifli/devel;/home/yangbo/catkin_ws_vo/devel;/opt/ros/melodic'.split(';')
+            CMAKE_PREFIX_PATH = r'/home/yangbo/python3_ws/devel;/home/yangbo/python3_ws/install;/home/yangbo/catkin_ws_dvs_driver/devel;/home/yangbo/catkin_ws_collect_dvs_IMU_data/devel;/opt/ros/melodic'.split(';')
         else:
             # don't consider any other prefix path than this one
             CMAKE_PREFIX_PATH = []

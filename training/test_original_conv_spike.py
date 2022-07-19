@@ -1,0 +1,156 @@
+from matplotlib.pyplot import axis
+import torch
+import torch.nn as nn
+import numpy as np
+
+NEURON_VTH = 0.5
+NEURON_CDECAY = 1 / 2
+NEURON_VDECAY = 3 / 4
+SPIKE_PSEUDO_GRAD_WINDOW = 0.5
+
+
+class PseudoSpikeRect(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        ctx.save_for_backward(input)
+        return input.gt(NEURON_VTH).float()           # 大于 NEURON_VTH 就发放脉冲
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, = ctx.saved_tensors
+        grad_input = grad_output.clone()
+        spike_pseudo_grad = (abs(input - NEURON_VTH) < SPIKE_PSEUDO_GRAD_WINDOW)
+        return grad_input * spike_pseudo_grad.float()
+
+
+class ActorNetSpiking(nn.Module):
+    """ Spiking Actor Network """
+    def __init__(self, combined_num, action_num, device, batch_window=50, hidden1=4800, hidden2=2400, hidden3=1200, hidden4=256):
+        """
+
+        :param state_num: number of states
+        :param action_num: number of actions
+        :param device: device used
+        :param batch_window: window steps
+        :param hidden1: hidden layer 1 dimension
+        :param hidden2: hidden layer 2 dimension
+        :param hidden3: hidden layer 3 dimension
+        """
+        super(ActorNetSpiking, self).__init__()
+        self.combined_num = combined_num   # 9600
+        self.action_num = action_num
+        self.device = device
+        self.batch_window = batch_window
+        self.hidden1 = hidden1
+        self.hidden2 = hidden2
+        self.hidden3 = hidden3
+        self.hidden4 = hidden4
+        self.pseudo_spike = PseudoSpikeRect.apply
+        # conv2 for positive events
+        self.conv1_1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=(4, 4), stride=2, padding=1)    # 3 x 240 x 320
+        self.conv1_2 = nn.Conv2d(in_channels=3, out_channels=10, kernel_size=(4, 4), stride=2, padding=1)   # 10 x 120 x 160
+        self.conv1_3 = nn.Conv2d(in_channels=10, out_channels=4, kernel_size=(4, 4), stride=4, padding=0)   # 4 x 30 x 40
+        # conv2 for negative events
+        self.conv2_1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=(4, 4), stride=2, padding=1)    # 3 x 240 x 320
+        self.conv2_2 = nn.Conv2d(in_channels=3, out_channels=10, kernel_size=(4, 4), stride=2, padding=1)   # 10 x 120 x 160
+        self.conv2_3 = nn.Conv2d(in_channels=10, out_channels=4, kernel_size=(4, 4), stride=4, padding=0)   # 4 x 30 x 40
+
+        self.flatten1 = nn.Flatten()
+        self.flatten2 = nn.Flatten()
+
+        self.fc1 = nn.Linear(self.combined_num, self.hidden1, bias=True)
+        self.fc2 = nn.Linear(self.hidden1, self.hidden2, bias=True)
+        self.fc3 = nn.Linear(self.hidden2, self.hidden3, bias=True)
+        self.fc4 = nn.Linear(self.hidden3, self.hidden4, bias=True)
+        self.fc5 = nn.Linear(self.hidden3, self.action_num, bias=True)
+
+
+    def neuron_model(self, syn_func, pre_layer_output, current, volt, spike):
+        """
+        Neuron Model
+        :param syn_func: synaptic function
+        :param pre_layer_output: output from pre-synaptic layer
+        :param current: current of last step
+        :param volt: voltage of last step
+        :param spike: spike of last step
+        :return: current, volt, spike
+        """
+        current = current * NEURON_CDECAY + syn_func(pre_layer_output)
+        volt = volt * NEURON_VDECAY * (1. - spike) + current
+        spike = self.pseudo_spike(volt)
+        return current, volt, spike
+
+    def forward(self, x, batch_size):   # x/state: [list(1x6), np.array(1x48x64)]
+                                        # x: 
+        """
+
+        :param x: state batch
+        :param batch_size: size of batch
+        :return: out
+        """
+        cv1_1_u = torch.zeros(batch_size, 3, 240, 320, device=self.device)
+        cv1_1_v = torch.zeros(batch_size, 3, 240, 320, deivce=self.device)
+        cv1_1_s = torch.zeros(batch_size, 3, 240, 320, deivce=self.device)
+
+        cv1_2_u = torch.zeros(batch_size, 10, 120, 160, device=self.device)
+        cv1_2_v = torch.zeros(batch_size, 10, 120, 160, device=self.device)
+        cv1_2_s = torch.zeros(batch_size, 10, 120, 160, device=self.device)
+
+        cv1_3_u = torch.zeros(batch_size, 4, 30, 40, device=self.device)
+        cv1_3_v = torch.zeros(batch_size, 4, 30, 40, device=self.device)
+        cv1_3_s = torch.zeros(batch_size, 4, 30, 40, device=self.device)
+
+        cv2_1_u = torch.zeros(batch_size, 3, 240, 320, device=self.device)
+        cv2_1_v = torch.zeros(batch_size, 3, 240, 320, deivce=self.device)
+        cv2_1_s = torch.zeros(batch_size, 3, 240, 320, deivce=self.device)
+
+        cv2_2_u = torch.zeros(batch_size, 10, 120, 160, device=self.device)
+        cv2_2_v = torch.zeros(batch_size, 10, 120, 160, device=self.device)
+        cv2_2_s = torch.zeros(batch_size, 10, 120, 160, device=self.device)
+
+        cv2_3_u = torch.zeros(batch_size, 4, 30, 40, device=self.device)
+        cv2_3_v = torch.zeros(batch_size, 4, 30, 40, device=self.device)
+        cv2_3_s = torch.zeros(batch_size, 4, 30, 40, device=self.device)      
+
+        fc1_u = torch.zeros(batch_size, self.hidden1, device=self.device)
+        fc1_v = torch.zeros(batch_size, self.hidden1, device=self.device)
+        fc1_s = torch.zeros(batch_size, self.hidden1, device=self.device)
+
+        fc2_u = torch.zeros(batch_size, self.hidden2, device=self.device)
+        fc2_v = torch.zeros(batch_size, self.hidden2, device=self.device)
+        fc2_s = torch.zeros(batch_size, self.hidden2, device=self.device)
+        
+        fc3_u = torch.zeros(batch_size, self.hidden3, device=self.device)
+        fc3_v = torch.zeros(batch_size, self.hidden3, device=self.device)
+        fc3_s = torch.zeros(batch_size, self.hidden3, device=self.device)
+        
+        fc4_u = torch.zeros(batch_size, self.hidden4, device=self.device)
+        fc4_v = torch.zeros(batch_size, self.hidden4, device=self.device)
+        fc4_s = torch.zeros(batch_size, self.hidden4, device=self.device)
+        
+        fc5_u = torch.zeros(batch_size, self.action_num, device=self.device)
+        fc5_v = torch.zeros(batch_size, self.action_num, device=self.device)
+        fc5_s = torch.zeros(batch_size, self.action_num, device=self.device)       
+        fc5_sumspike = torch.zeros(batch_size, self.action_num, device=self.device)
+
+        for step in range(self.batch_window):
+          #   input_spike_pos, input_spike_neg = x[:, :, step]    # input_spike: tensor: batch_size x 196
+            input_spike_pos, input_spike_neg = x[0][step, :, :, :, :], x[1][step, :, :, :, :]    # batch_size x channels x height x width
+            cv1_1_u, cv1_1_v, cv1_1_s = self.neuron_model(self.conv1_1, input_spike_pos, cv1_1_u, cv1_1_v, cv1_1_s)
+            cv1_2_u, cv1_2_v, cv1_2_s = self.neuron_model(self.conv1_2, cv1_1_s, cv1_2_u, cv1_2_v, cv1_2_s)
+            cv1_3_u, cv1_3_v, cv1_3_s = self.neuron_model(self.conv1_3, cv1_2_s, cv1_3_u, cv1_3_v, cv1_3_s)
+            output_pos = self.flatten1(cv1_3_s)
+
+            cv2_1_u, cv2_1_v, cv2_1_s = self.neuron_model(self.conv2_1, input_spike_neg, cv2_1_u, cv2_1_v, cv2_1_s)
+            cv2_2_u, cv2_2_v, cv2_2_s = self.neuron_model(self.conv2_2, cv2_1_s, cv2_2_u, cv2_2_v, cv2_2_s)
+            cv2_3_u, cv2_3_v, cv2_3_s = self.neuron_model(self.conv2_3, cv2_2_s, cv2_3_u, cv2_3_v, cv2_3_s)           
+            output_neg = self.flatten2(cv2_3_s)
+
+            combined_data = torch.cat([output_pos, output_neg], axis=1)   # 1 x 9600   
+            fc1_u, fc1_v, fc1_s = self.neuron_model(self.fc1, combined_data, fc1_u, fc1_v, fc1_s)
+            fc2_u, fc2_v, fc2_s = self.neuron_model(self.fc2, fc1_s, fc2_u, fc2_v, fc2_s)
+            fc3_u, fc3_v, fc3_s = self.neuron_model(self.fc3, fc2_s, fc3_u, fc3_v, fc3_s)
+            fc4_u, fc4_v, fc4_s = self.neuron_model(self.fc4, fc3_s, fc4_u, fc4_v, fc4_s)
+            fc5_u, fc5_v, fc5_s = self.neuron_model(self.fc5, fc4_s, fc5_u, fc5_v, fc5_s)
+            fc5_sumspike += fc5_s
+        out = fc5_sumspike / self.batch_window
+        return out  #  tensor: batch_size x 2

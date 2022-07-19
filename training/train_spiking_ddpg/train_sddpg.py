@@ -18,9 +18,9 @@ from training.utility import *
 def train_sddpg(run_name="SNN_R1", exp_name="Rand_R1", episode_num=(300, 400, 500, 600),
                 iteration_num_start=(200, 300, 400, 500), iteration_num_step=(1, 2, 3, 4),
                 iteration_num_max=(1000, 1000, 1000, 1000),
-                linear_spd_max=0.5, linear_spd_min=0.05, save_steps=2000,
+                linear_spd_max=0.5, linear_spd_min=0.0, save_steps=2000,
                 env_epsilon=(0.9, 0.6, 0.6, 0.6), env_epsilon_decay=(0.999, 0.9999, 0.9999, 0.9999),
-                laser_half_num=9, laser_min_dis=0.35, scan_overall_num=36, goal_dis_min_dis=0.3,
+                goal_dis_min_dis=0.3,
                 obs_reward=-20, goal_reward=30, goal_dis_amp=15, goal_th=0.5, obs_th=0.35,
                 state_num=6, action_num=2, spike_state_num=198, batch_window=50, actor_lr=1e-5,
                 memory_size=100000, batch_size=256, epsilon_end=0.1, rand_start=10000, rand_decay=0.999,
@@ -86,16 +86,17 @@ def train_sddpg(run_name="SNN_R1", exp_name="Rand_R1", episode_num=(300, 400, 50
 
     # Define Environment and Agent Object for training
     rospy.init_node("train_sddpg")
-    env = GazeboEnvironment(goal_dis_min_dis=goal_dis_min_dis,
-                            obs_reward=obs_reward, goal_reward=goal_reward, goal_dis_amp=goal_dis_amp,
+    print('Here1')
+    env = GazeboEnvironment(obs_reward=obs_reward, goal_reward=goal_reward, goal_dis_amp=goal_dis_amp,
                             goal_near_th=goal_th, obs_near_th=obs_th)
+    print('Here2')
     agent = AgentSpiking(state_num, action_num, spike_state_num,
                          batch_window=batch_window, actor_lr=actor_lr,
                          memory_size=memory_size, batch_size=batch_size, epsilon_end=epsilon_end,
                          epsilon_rand_decay_start=rand_start, epsilon_decay=rand_decay,
                          epsilon_rand_decay_step=rand_step,
                          target_tau=target_tau, target_update_steps=target_step, use_cuda=use_cuda)
-
+    print('Here3')
     # Define Tensorboard Writer
     tb_writer = SummaryWriter()
 
@@ -114,57 +115,39 @@ def train_sddpg(run_name="SNN_R1", exp_name="Rand_R1", episode_num=(300, 400, 50
     # load the trained CNN
     device = torch.device('cuda')
 
-    trained_CNN = Trained_CNN()
-    file_name = 'DDPG_R1_cnn_network_s8.pt'
-    state_dict = torch.load('../save_ddpg_weights/' + file_name)
-    new_state_dict = OrderedDict()
-    new_state_dict = {'net1.'+k:v for k,v in state_dict.items()}
-    net_cnn_dict = trained_CNN.state_dict()
-    net_cnn_dict.update(new_state_dict)
-    trained_CNN.load_state_dict(net_cnn_dict)
-    trained_CNN.to(device)
+    # trained_CNN = Trained_CNN()
+    # file_name = 'DDPG_R1_cnn_network_s8.pt'
+    # state_dict = torch.load('../save_ddpg_weights/' + file_name)
+    # new_state_dict = OrderedDict()
+    # new_state_dict = {'net1.'+k:v for k,v in state_dict.items()}
+    # net_cnn_dict = trained_CNN.state_dict()
+    # net_cnn_dict.update(new_state_dict)
+    # trained_CNN.load_state_dict(net_cnn_dict)
+    # trained_CNN.to(device)
 
     # Start Training
     start_time = time.time()
     flag = 0
+    print('start to train!')
     while True:
-        state = env.reset(env_episode)  # [list(1x4), np.array(1x48x64)]
-        spike_state_value = ddpg_state_2_spike_value_state(state, 6)   # state: [list(1x6), np.array(1x48x64)]
+        state = env.reset(env_episode)  # state: [np.array(1x4), [np.array(6x480x640), np.array(6x480x640)]]
+        # spike_state_value = ddpg_state_2_spike_value_state(state, 6)   
         episode_reward = 0
         for ita in range(ita_per_episode):
             flag = flag + 1
             ita_time_start = time.time()
             overall_steps += 1
-            
-            #print('flag = ', flag)
-            with torch.no_grad():
-                normal_state, depth_state = spike_state_value
-                depth_state = torch.Tensor(depth_state).unsqueeze(0).to(device)  # tensor(1x1x48x64)
-                depth_out = trained_CNN(depth_state)   # tensor(1 x 192)
-                depth_out = depth_out.cpu().numpy()
-                normal_state = np.array([normal_state])
-                combined_data = np.concatenate([normal_state, depth_out], axis=1)  # np: 1 x 198               
-            
-            #print('shape: ', combined_data.shape)
-            raw_action, raw_snn_action = agent.act(combined_data)
+
+            raw_action, raw_snn_action = agent.act(state)
             decode_action = wheeled_network_2_robot_action_decoder(
                 raw_action, linear_spd_max, linear_spd_min
             )
             next_state, reward, done = env.step(decode_action)
-            spike_nstate_value = ddpg_state_2_spike_value_state(next_state, 6)
 
             # Add a last step negative reward
-            episode_reward += reward
-
-            with torch.no_grad():
-                normal_nstate, depth_nstate = spike_nstate_value
-                depth_nstate = torch.Tensor(depth_nstate).unsqueeze(0).to(device)  # tensor(1x1x48x64)
-                depth_nout = trained_CNN(depth_nstate)   # tensor(1 x 192)
-                depth_nout = depth_nout.cpu().numpy()
-                normal_nstate = np.array([normal_nstate])
-                ncombined_data = np.concatenate([normal_nstate, depth_nout], axis=1)  # np: 1 x 196               
+            episode_reward += reward               
             
-            agent.remember(state, combined_data, raw_action, reward, next_state, ncombined_data, done)
+            agent.remember(state, raw_action, reward, next_state, done)
             # state          : list: [list(1x4), np.array(1x48x64)]
             # combined_data  : np: 1x196
             # raw_action     : list: [1x2]
@@ -174,7 +157,6 @@ def train_sddpg(run_name="SNN_R1", exp_name="Rand_R1", episode_num=(300, 400, 50
             # done           : bool 1
 
             state = next_state
-            spike_state_value = spike_nstate_value
 
             # Train network with replay
             if len(agent.memory) > batch_size:

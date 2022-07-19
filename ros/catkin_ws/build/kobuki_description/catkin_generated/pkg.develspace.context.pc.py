@@ -4,5 +4,5 @@ PROJECT_PKG_CONFIG_INCLUDE_DIRS = "".split(';') if "" != "" else []
 PROJECT_CATKIN_DEPENDS = "urdf;xacro".replace(';', ' ')
 PKG_CONFIG_LIBRARIES_WITH_PREFIX = "".split(';') if "" != "" else []
 PROJECT_NAME = "kobuki_description"
-PROJECT_SPACE_DIR = "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel"
+PROJECT_SPACE_DIR = "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel"
 PROJECT_VERSION = "0.7.6"

@@ -1,7 +1,8 @@
 file(REMOVE_RECURSE
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan/msg/_SimpleScan.py"
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan/msg/__init__.py"
   "CMakeFiles/simple_laserscan_generate_messages_py"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan/msg/_SimpleScan.py"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan/msg/_Spying.py"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/python2.7/dist-packages/simple_laserscan/msg/__init__.py"
 )
 
 # Per-language clean rules from dependency scanning.

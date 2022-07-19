@@ -1,8 +1,7 @@
 file(REMOVE_RECURSE
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/turtlebot_description/turtlebot_description_test_urdf"
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/turtlebot_description/turtlebot_description_test_urdf.pdb"
   "CMakeFiles/turtlebot_description_test_urdf.dir/test/test_urdf.cpp.o"
-  "CMakeFiles/turtlebot_description_test_urdf.dir/test/test_urdf.cpp.o.d"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/turtlebot_description/turtlebot_description_test_urdf.pdb"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/turtlebot_description/turtlebot_description_test_urdf"
 )
 
 # Per-language clean rules from dependency scanning.

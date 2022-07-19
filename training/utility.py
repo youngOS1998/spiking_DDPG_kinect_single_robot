@@ -393,3 +393,8 @@ def ddpg_state_rescale(state, normal_state_num,
     tmp_list.append(depth_state)           # depth state : np.array(1 x 480 x 640)
     return tmp_list
 
+
+def dvs_tf_to_actor_state(dvs_state):
+    dvs_pos, dvs_neg = dvs_state
+    
+

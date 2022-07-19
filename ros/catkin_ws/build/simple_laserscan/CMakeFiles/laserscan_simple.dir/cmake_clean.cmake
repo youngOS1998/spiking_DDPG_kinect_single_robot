@@ -1,8 +1,7 @@
 file(REMOVE_RECURSE
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/simple_laserscan/laserscan_simple"
-  "/home/yangbo/spiking-ddpg-mapless-navigation/ros/catkin_ws/devel/lib/simple_laserscan/laserscan_simple.pdb"
   "CMakeFiles/laserscan_simple.dir/src/laserscan_simple_rplidar.cpp.o"
-  "CMakeFiles/laserscan_simple.dir/src/laserscan_simple_rplidar.cpp.o.d"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/simple_laserscan/laserscan_simple.pdb"
+  "/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/lib/simple_laserscan/laserscan_simple"
 )
 
 # Per-language clean rules from dependency scanning.
