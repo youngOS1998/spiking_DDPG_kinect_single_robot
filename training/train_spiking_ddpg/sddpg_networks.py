@@ -168,14 +168,14 @@ class ActorNetSpiking(nn.Module):
             cv1_2_u, cv1_2_v, cv1_2_s = self.neuron_model(self.conv1_2, cv1_1_s, cv1_2_u, cv1_2_v, cv1_2_s)
             cv1_3_u, cv1_3_v, cv1_3_s = self.neuron_model(self.conv1_3, cv1_2_s, cv1_3_u, cv1_3_v, cv1_3_s)
             output_pos = self.flatten1(cv1_3_s)
-            print(output_pos.shape)
+            #print(output_pos.shape)
 
             cv2_1_u, cv2_1_v, cv2_1_s = self.neuron_model(self.conv2_1, input_spike_neg, cv2_1_u, cv2_1_v, cv2_1_s)
             cv2_2_u, cv2_2_v, cv2_2_s = self.neuron_model(self.conv2_2, cv2_1_s, cv2_2_u, cv2_2_v, cv2_2_s)
             cv2_3_u, cv2_3_v, cv2_3_s = self.neuron_model(self.conv2_3, cv2_2_s, cv2_3_u, cv2_3_v, cv2_3_s)           
             output_neg = self.flatten2(cv2_3_s)
-            print(output_neg.shape)
-            print(normal_spikes.shape)
+            #print(output_neg.shape)
+            #print(normal_spikes.shape)
 
             combined_data = torch.cat([output_pos, output_neg, normal_spikes_input], axis=1)   # batch x 9602   
             fc1_u, fc1_v, fc1_s = self.neuron_model(self.fc1, combined_data, fc1_u, fc1_v, fc1_s)
