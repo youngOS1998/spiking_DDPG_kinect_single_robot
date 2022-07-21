@@ -67,14 +67,14 @@ set(simple_laserscan_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(simple_laserscan_SOURCE_PREFIX /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/src/simple_laserscan)
-  set(simple_laserscan_DEVEL_PREFIX /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel)
+  set(simple_laserscan_SOURCE_PREFIX /home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/src/simple_laserscan)
+  set(simple_laserscan_DEVEL_PREFIX /home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/devel)
   set(simple_laserscan_INSTALL_PREFIX "")
   set(simple_laserscan_PREFIX ${simple_laserscan_DEVEL_PREFIX})
 else()
   set(simple_laserscan_SOURCE_PREFIX "")
   set(simple_laserscan_DEVEL_PREFIX "")
-  set(simple_laserscan_INSTALL_PREFIX /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install)
+  set(simple_laserscan_INSTALL_PREFIX /home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/install)
   set(simple_laserscan_PREFIX ${simple_laserscan_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install/lib;/home/yangbo/python3_ws/install/lib;/home/yangbo/catkin_ws_dvs_driver/devel/lib;/home/yangbo/catkin_ws_collect_dvs_IMU_data/devel/lib;/opt/ros/melodic/lib)
+    foreach(path /home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/install/lib;/home/byang/catkin_ws/devel/lib;/opt/ros/melodic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

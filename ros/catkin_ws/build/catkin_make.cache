@@ -1,2 +1,2 @@
-kobuki_description:simple_laserscan:turtlebot_description:turtlebot_lidar
--DCATKIN_DEVEL_PREFIX=/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install -G Unix Makefiles
+mbot_description:mbot_gazebo:simple_laserscan
+-DCATKIN_DEVEL_PREFIX=/home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/install -G Unix Makefiles

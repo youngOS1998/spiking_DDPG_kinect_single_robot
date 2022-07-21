@@ -1,4 +1,4 @@
-prefix=/home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/install
+prefix=/home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/install
 
 Name: simple_laserscan
 Description: Description of simple_laserscan

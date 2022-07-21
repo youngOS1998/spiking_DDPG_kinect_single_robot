@@ -4,7 +4,7 @@ import copy
 import random
 import numpy as np
 from shapely.geometry import Point
-from simple_laserscan.msg import SimpleScan, Spying
+from simple_laserscan.msg import Spying
 from gazebo_msgs.msg import ModelStates, ModelState
 from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty

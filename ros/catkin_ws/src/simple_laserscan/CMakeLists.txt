@@ -52,7 +52,7 @@ add_definitions(-std=c++11)
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  SimpleScan.msg
+#  SimpleScan.msg
   Spying.msg
 #   Message1.msg
 #   Message2.msg
@@ -211,6 +211,6 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(laserscan_simple src/laserscan_simple_rplidar.cpp)
-target_link_libraries(laserscan_simple ${catkin_LIBRARIES})
-add_dependencies(laserscan_simple laserscan_simple_generate_message_cpp)
+#add_executable(laserscan_simple src/laserscan_simple_rplidar.cpp)
+#target_link_libraries(laserscan_simple ${catkin_LIBRARIES})
+#add_dependencies(laserscan_simple laserscan_simple_generate_message_cpp)

@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/yangbo/spiking_dvs_robot_tracking/ros/catkin_ws/devel/setup.sh
+    local-name: /home/byang/spiking_dvs_robot_tracking/ros/catkin_ws/devel/setup.sh

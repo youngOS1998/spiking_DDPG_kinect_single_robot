@@ -22,8 +22,8 @@ def train_sddpg(run_name="SNN_R1", exp_name="Rand_R1", episode_num=(300, 400, 50
                 env_epsilon=(0.9, 0.6, 0.6, 0.6), env_epsilon_decay=(0.999, 0.9999, 0.9999, 0.9999),
                 goal_dis_min_dis=0.3,
                 obs_reward=-20, goal_reward=30, goal_dis_amp=15, goal_th=0.5, obs_th=0.35,
-                state_num=6, action_num=2, spike_state_num=9604, batch_window=50, actor_lr=1e-5,
-                memory_size=100000, batch_size=256, epsilon_end=0.1, rand_start=10000, rand_decay=0.999,
+                state_num=4, action_num=2, spike_state_num=9604, batch_window=50, actor_lr=1e-5,
+                memory_size=100000, batch_size=50, epsilon_end=0.1, rand_start=10000, rand_decay=0.999,
                 rand_step=2, target_tau=0.01, target_step=1, use_cuda=True):
     """
     Training Spiking DDPG for Mapless Navigation
@@ -148,8 +148,7 @@ def train_sddpg(run_name="SNN_R1", exp_name="Rand_R1", episode_num=(300, 400, 50
             episode_reward += reward               
             
             agent.remember(state, raw_action, reward, next_state, done)
-            # state          : list: [list(1x4), np.array(1x48x64)]
-            # combined_data  : np: 1x196
+            # state          : list[np.array(1x4), [np.array(6x480x640), np.array(6x480x640)]]
             # raw_action     : list: [1x2]
             # reward         : int 1
             # next_state     : list: [list(1x4), np.array(1x48x64)]

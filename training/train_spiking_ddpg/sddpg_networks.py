@@ -161,6 +161,7 @@ class ActorNetSpiking(nn.Module):
 
         for step in range(self.batch_window):
 
+            #print('x[0] shape:', x[0].shape)
           # input_spike_pos, input_spike_neg = x[:, :, step]    # input_spike: tensor: batch_size x 196
             input_spike_pos, input_spike_neg = x[0][step, :, :, :, :], x[1][step, :, :, :, :]    # step x batch_size x channels x height x width
             normal_spikes_input = normal_spikes[step, :, :]
@@ -270,16 +271,18 @@ if __name__ == "__main__":
 
     # evaluation for actor network
     with torch.no_grad():
-        spike_value_pos = np.random.rand(1, 4, 1, 480, 640)
-        spike_value_neg = np.random.rand(1, 4, 1, 480, 640)
-        data_pos = np.random.rand(5, 4, 1, 480, 640) < spike_value_pos
-        data_neg = np.random.rand(5, 4, 1, 480, 640) < spike_value_neg
+        spike_value_pos = np.random.rand(1, 1, 1, 480, 640)
+        spike_value_neg = np.random.rand(1, 1, 1, 480, 640)
+        data_pos = np.random.rand(5, 1, 1, 480, 640) < spike_value_pos
+        data_neg = np.random.rand(5, 1, 1, 480, 640) < spike_value_neg
         state_spikes_pos = data_pos.astype(float)
         state_spikes_neg = data_neg.astype(float)
         state_spikes_pos = torch.Tensor(state_spikes_pos).to(device)
         state_spikes_neg = torch.Tensor(state_spikes_neg).to(device)
-        normal_state = np.random.rand(4, 4)  # batch_size x state_num
+        normal_state = np.random.rand(1, 4)  # batch_size x state_num
         combined_data = [state_spikes_pos, state_spikes_neg, normal_state]
-        output_data = actor_net(combined_data, 4)
+        output_data = actor_net(combined_data, 1)
+        output_data = output_data.cpu().numpy().squeeze()
     print(output_data)
-    print(output_data.shape)
+    tmp_data = output_data.tolist()
+    print(tmp_data)
